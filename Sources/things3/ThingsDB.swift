@@ -15,13 +15,17 @@ fileprivate enum TaskType: Int64 {
     case actionGroup = 2
 }
 
-struct Task {
+struct Task: CustomStringConvertible {
     var creationDate: String
     var title: String
     var notes: String
     var startDate: String
     var dueDate: String
     var stopDate: String
+    
+    var description: String {
+        "\(creationDate), \(title), \(notes.replacingOccurrences(of: "\n", with: " ")), \(startDate), \(dueDate), \(stopDate)"
+    }
 }
 
 struct ThingsDB {
@@ -232,6 +236,19 @@ extension ThingsDB {
             print("\(dateStr!): \(task[title])")
         }
     }
+    
+    func getTaskTextTable() -> TextTable<Task> {
+        let table = TextTable<Task> {
+            [Column(title: "Creation Date", value: $0.creationDate),
+             Column(title: "Task", value: $0.title),
+             Column(title: "Notes", value: $0.notes, width: 24, truncate: .tail),
+             Column(title: "Start Date", value: $0.startDate),
+             Column(title: "Due Date", value: $0.dueDate),
+             Column(title: "Completion Date", value: $0.stopDate)]
+        }
+        
+        return table
+    }
 }
 
 // MARK: - This section is for export commands
@@ -242,22 +259,27 @@ extension ThingsDB {
     func stdout(project: String) {
         var gatheredTasks = getTasks(for: project)
         
-        gatheredTasks.sort(by: {
-            $0.startDate < $1.startDate
-        })
+        gatheredTasks.sort(by: {$0.startDate < $1.startDate})
         
-        let table = TextTable<Task> {
-            [Column(title: "Creation Date", value: $0.creationDate),
-             Column(title: "Task", value: $0.title),
-             Column(title: "Notes", value: $0.notes, width: 24, truncate: .tail),
-             Column(title: "Start Date", value: $0.startDate),
-             Column(title: "Due Date", value: $0.dueDate),
-             Column(title: "Completion Date", value: $0.stopDate)]
-        }
-        
+        let table = getTaskTextTable()
         table.print(gatheredTasks, style: Style.fancy)
     }
     
     // TODO: - Export tasks to CSV formatted file
-
+    func csv(project: String, fileName: String){
+        var gatheredTask = getTasks(for: project)
+        
+        gatheredTask.sort(by: {$0.startDate < $1.startDate})
+        
+        var taskString = "Creation Date, Title, Notes, Start Date, Due Date, Completion Date\n"
+        for task in gatheredTask {
+            taskString.append("\(task.description)\n")
+        }
+        
+        do {
+            try taskString.write(toFile: fileName, atomically: true, encoding: String.Encoding.utf8)
+        } catch {
+            print("failed to create file: \(fileName)")
+        }
+    }
 }

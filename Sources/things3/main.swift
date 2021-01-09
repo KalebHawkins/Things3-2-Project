@@ -68,33 +68,40 @@ struct Tasks: ParsableCommand {
 // Export is a subcommand of Things3. This command allows you to export a selected project.
 struct Export: ParsableCommand {
     static var configuration: CommandConfiguration = CommandConfiguration(
-        abstract: "Export allows you to export your projects in a more project manager friendly format."
+        abstract: "Export allows you to export your projects in a more project manager friendly format.",
+        subcommands: [Stdout.self, Csv.self]
+    )
+    
+    func run() throws {
+        print(Export.helpMessage())
+    }
+}
+
+// Print project to stdout using things3 export stdout
+struct Stdout: ParsableCommand {
+    static var configuration: CommandConfiguration = CommandConfiguration(
+        abstract: "Print your project to stdout"
     )
     
     @Argument(help: "Name of the project to export") var project: String
     
-    @Flag(name: .shortAndLong, help: "Output the project in std output") var csv: Bool = false
-    @Flag(name: .shortAndLong, help: "Output the project in std output") var stdout: Bool = false
-    
-    func validate() throws {
-        guard stdout && csv else {
-            throw ValidationError("See things3 export -h for usage.")
-        }
-        
-        guard csv else {
-            throw ValidationError("See things3 export -h for usage.")
-        }
+    func run() throws {
+        thingsDB.stdout(project: project)
     }
+}
+
+// Export project to stdout using things3 export csv <filename>
+struct Csv: ParsableCommand {
+    static var configuration: CommandConfiguration = CommandConfiguration(
+        abstract: "Export your project to csv file"
+    )
+    
+    @Argument(help: "Name of the project to export") var project: String
+    @Argument(help: "Name of the project to export") var fileName: String
     
     func run() throws {
-        if stdout {
-            thingsDB.stdout(project: project)
-        }
-        if csv {
-            
-        }
+        thingsDB.csv(project: project, fileName: fileName)
     }
-    
 }
 
 Things3.main()
