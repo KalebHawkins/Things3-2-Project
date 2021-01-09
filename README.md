@@ -1,19 +1,33 @@
-# Things3-CLI
-
-## DISCLAIMER
-This code repository is a work in progress. 
+# Things3-2-Project
 
 ## Overview 
 
 Things3 is a command line tool to export projects in a more project manager friendly format for those projects you need to share. 
 
+## Installation
+
+To compile the code you need to clone the repository and run the `swift build` command
+
+```shell
+git clone https://github.com/KalebHawkins/Things3-2-Project.git
+cd Things-2-Project/
+
+swift build --configuraion release
+sudo cp .build/release/things3 /usr/share/bin
+```
 
 ## Usage
 
 ### Getting Help
 
+The below commands are all way of getting help. 
+
 ```
-./things3 -h
+things3
+things3 -h
+things3 --help
+
+# EXAMPLE OUTPUT
 OVERVIEW: Things3 is a command line interface for exporting projects and tasks in a sharable manner.
 
 Things3 is a command line interface to interact with the Things3 database.
@@ -25,44 +39,39 @@ OPTIONS:
 
 SUBCOMMANDS:
   list                    List available areas, projects, or tasks
+  export                  Export allows you to export your projects in a more project manager friendly format.
 
   See 'things3 help <subcommand>' for detailed help.
-  ```
-  
-  ###  Listing Areas, Projects, and Tasks
-  
-  ```
-  ./things3 list -h
-  OVERVIEW: List available areas, projects, or tasks
-
-  USAGE: things3 list [--area] [--projects] [--tasks]
-
-  OPTIONS:
-    -a, --area              List available areas (sorted alphabetically)
-    -p, --projects          List available projects (sorted alphabetically)
-    -t, --tasks             List available tasks (sorted by creation date)
-    -h, --help              Show help information.
 ```
+
+You can also get help on subcommands using the same method above but specifying the subcommand.
+
+```
+things3 export
+things3 export -h
+```
+
+### Listing 
 
 Listing  areas, projects, and tasks can be done using the options listed for the `list` subcommand
 
 ```
 # Will list areas
-./things3 list -a
+things3 list areas
 
 # Will list projects
-./things3 list -p
+things3 list projects
 
 # Will list tasks
-./things3 list -t
+things3 list tasks
 ```
 
 ### Exporting Projects
 
-To display a quick list of project task in your console window use the `export` subcommand.
+To display a quick list of project task in your console window use the `export stdout` subcommand.
 
 ```
-./things3 export <project-name> --stdout
+things3 export stdout <projectName>
 
 
 # Example Output
@@ -77,7 +86,8 @@ To display a quick list of project task in your console window use the `export` 
 ├───────────────┼──────────────────────────────────────────────────────────────────────────────┼──────────────────────────┼────────────┼──────────┼─────────────────┼
 ```
 
+To export your project to csv file use `export csv` subcommand.
 
-
-
-More to come....
+```
+things3 export csv <projectName> <fileName>.csv
+```
