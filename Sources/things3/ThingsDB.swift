@@ -22,7 +22,6 @@ struct Task {
     var startDate: String
     var dueDate: String
     var stopDate: String
-    var status: String
 }
 
 struct ThingsDB {
@@ -149,7 +148,6 @@ extension ThingsDB {
         let startDate = Expression<Double?>("startDate")
         let dueDate = Expression<Double?>("dueDate")
         let stopDate = Expression<Double?>("stopDate")
-        let status = Expression<Double?>("status")
         
         // Columns used to manipulate data for the desired output
         // UUID: is the Project UUID
@@ -215,7 +213,6 @@ extension ThingsDB {
                 var startDateStr: String?
                 var dueDateStr: String?
                 var stopDateStr: String?
-                var statusStr: String
 
                 if let startDate = projectTask[startDate] {
                     startDateStr = formatDate(from: TimeInterval(startDate))
@@ -229,18 +226,10 @@ extension ThingsDB {
                     stopDateStr = formatDate(from: TimeInterval(stopDate))
                 }
                 
-                if let status = projectTask[status] {
-                    statusStr = String(status)
-                } else {
-                    statusStr = "Unknown"
-                }
-                
-                
-                
                 let creationDateStr = formatDate(from: TimeInterval(projectTask[creationDate]))
                 
                 
-                gatheredTasks.append(Task(creationDate: creationDateStr ?? "N/a", title: projectTask[title], notes: projectTask[notes].trimmingCharacters(in: CharacterSet.newlines), startDate: startDateStr ?? "N/a", dueDate: dueDateStr ?? "N/a", stopDate: stopDateStr ?? "N/a", status: statusStr))
+                gatheredTasks.append(Task(creationDate: creationDateStr ?? "N/a", title: projectTask[title], notes: projectTask[notes].trimmingCharacters(in: CharacterSet.newlines), startDate: startDateStr ?? "N/a", dueDate: dueDateStr ?? "N/a", stopDate: stopDateStr ?? "N/a"))
             }
         }
         
@@ -255,8 +244,7 @@ extension ThingsDB {
              Column(title: "Notes", value: $0.notes, width: 24, truncate: .tail),
              Column(title: "Start Date", value: $0.startDate),
              Column(title: "Due Date", value: $0.dueDate),
-             Column(title: "Completion Date", value: $0.stopDate),
-             Column(title: "Completed", value: $0.status == "3" ? "Yes" : "No"),
+             Column(title: "Completion Date", value: $0.stopDate)
             ]
         }
         
