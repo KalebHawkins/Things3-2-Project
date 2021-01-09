@@ -8,5 +8,5 @@
 import Foundation
 
 struct Constants {
-    static let thingsDatabasePath: String = "Library/Group Containers/JLMPQHK86H.com.culturedcode.ThingsMac/things.sqlite3"
+    static let thingsDatabasePath: String = "Library/Group Containers/JLMPQHK86H.com.culturedcode.ThingsMac/Things Database.thingsdatabase/main.sqlite"
 }

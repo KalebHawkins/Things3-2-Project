@@ -7,11 +7,22 @@
 
 import Foundation
 import SQLite
+import TextTable
 
 fileprivate enum TaskType: Int64 {
     case task = 0
     case project = 1
     case actionGroup = 2
+}
+
+struct Task {
+    var creationDate: String
+    var title: String
+    var notes: String
+    var startDate: String
+    var dueDate: String
+    var stopDate: String
+    var status: String
 }
 
 struct ThingsDB {
@@ -138,13 +149,19 @@ extension ThingsDB {
         let startDate = Expression<Double?>("startDate")
         let dueDate = Expression<Double?>("dueDate")
         let stopDate = Expression<Double?>("stopDate")
+        let status = Expression<Double?>("status")
         
         // Columns used to manipulate data for the desired output
+        // UUID: is the Project UUID
+        // parentProject: is the Project the task resides in
+        // actionGroup: is the Project section header
+        
         let uuid = Expression<String>("uuid")
         let parentProject = Expression<String?>("project")
         let actionGroup = Expression<String?>("actionGroup")
         
-        // Get the project uuid from the name of the project
+        // Get the project uuid from the name of the project.
+        // The UUID is used to create a filter for tasks specific to the targeted project
         var projectUuid: String = ""
         do {
             for targetProject in try thingsdb.prepare(tasks.select(uuid).filter(title == project).limit(1)) {
@@ -154,6 +171,8 @@ extension ThingsDB {
             print("failed to retrieve project: \(project): \(error)")
         }
 
+        // Save ALL tasks in an array to filter on.
+        // TODO: - Find a better way to do this. With a large dataset this could be really slow.
         var allTasks = [Row]()
         do {
             allTasks = Array(try thingsdb.prepare(tasks))
@@ -190,13 +209,13 @@ extension ThingsDB {
         
         
         // Print task info
+        var gatheredTasks = [Task]()
         for sectionHeader in sectionHeaders {
-            print(sectionHeader[title])
-            
             for projectTask in projectTasks.filter({ $0[actionGroup] == sectionHeader[uuid] }) {
                 var startDateStr: String?
                 var dueDateStr: String?
                 var stopDateStr: String?
+                var statusStr: String
 
                 if let startDate = projectTask[startDate] {
                     startDateStr = formatDate(from: TimeInterval(startDate))
@@ -210,12 +229,37 @@ extension ThingsDB {
                     stopDateStr = formatDate(from: TimeInterval(stopDate))
                 }
                 
+                if let status = projectTask[status] {
+                    statusStr = String(status)
+                } else {
+                    statusStr = "Unknown"
+                }
+                
+                
+                
                 let creationDateStr = formatDate(from: TimeInterval(projectTask[creationDate]))
                 
                 
-                print("\(creationDateStr!) | \(projectTask[title]) | \(startDateStr ?? "N/a") | \(dueDateStr ?? "N/a") | \(stopDateStr ?? "N/a")  ")
-                
+                gatheredTasks.append(Task(creationDate: creationDateStr ?? "N/a", title: projectTask[title], notes: projectTask[notes].trimmingCharacters(in: CharacterSet.newlines), startDate: startDateStr ?? "N/a", dueDate: dueDateStr ?? "N/a", stopDate: stopDateStr ?? "N/a", status: statusStr))
             }
         }
+        
+        
+        gatheredTasks.sort(by: {
+            $0.startDate < $1.startDate
+        })
+        
+        let table = TextTable<Task> {
+            [Column(title: "Creation Date", value: $0.creationDate),
+             Column(title: "Task", value: $0.title),
+             Column(title: "Notes", value: $0.notes, width: 24, truncate: .tail),
+             Column(title: "Start Date", value: $0.startDate),
+             Column(title: "Due Date", value: $0.dueDate),
+             Column(title: "Completion Date", value: $0.stopDate),
+             Column(title: "Completed", value: $0.status == "3" ? "Yes" : "No"),
+            ]
+        }
+        
+        table.print(gatheredTasks, style: Style.fancy)
     }
 }
