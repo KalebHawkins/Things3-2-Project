@@ -77,57 +77,8 @@ extension ThingsDB {
         let date = Date(timeIntervalSince1970: epochTime)
         return df.string(from: date)
     }
-}
-
-
-// MARK: - List subcommand functions are in this section.
-extension ThingsDB {
-    func listAreas() {
-        let areas = Table("TMArea")
-        let title = Expression<String>("title")
-        
-        let query = areas.select(title).order(title.asc)
-        
-        for area in run(query: query) {
-            print(area[title])
-        }
-    }
     
-    func listProjects() {
-        let projects = Table("TMTask")
-        let title = Expression<String>("title")
-        let type = Expression<Int64>("type")
-        
-        let query = projects.select(title).filter(type == TaskType.project.rawValue).order(title.asc)
-        
-        for project in run(query: query){
-            print(project[title])
-        }
-    }
-    
-    func listTasks() {
-        
-        let tasks = Table("TMTask")
-        let title = Expression<String>("title")
-        let type = Expression<Int64>("type")
-        let trashed = Expression<Int64>("trashed")
-        
-        // Thing3 stores there dates as epoch time
-        let creationDate = Expression<Double>("creationDate")
-        
-        let query = tasks.select(title,creationDate).filter(type == TaskType.task.rawValue && trashed == 0).order(creationDate.asc)
-        
-        for task in run(query: query) {
-            let dateStr = formatDate(from: TimeInterval(task[creationDate]))
-            
-            print("\(dateStr!): \(task[title])")
-        }
-    }
-}
-
-extension ThingsDB {
-    
-    func stdout(project: String) {
+    fileprivate func getTasks(for project: String) -> [Task] {
         let tasks = Table("TMTask")
         
         // Creation Date:   Date the task was created
@@ -233,6 +184,63 @@ extension ThingsDB {
             }
         }
         
+        return gatheredTasks
+    }
+}
+
+
+// MARK: - List subcommand functions are in this section.
+extension ThingsDB {
+    func listAreas() {
+        let areas = Table("TMArea")
+        let title = Expression<String>("title")
+        
+        let query = areas.select(title).order(title.asc)
+        
+        for area in run(query: query) {
+            print(area[title])
+        }
+    }
+    
+    func listProjects() {
+        let projects = Table("TMTask")
+        let title = Expression<String>("title")
+        let type = Expression<Int64>("type")
+        
+        let query = projects.select(title).filter(type == TaskType.project.rawValue).order(title.asc)
+        
+        for project in run(query: query){
+            print(project[title])
+        }
+    }
+    
+    func listTasks() {
+        
+        let tasks = Table("TMTask")
+        let title = Expression<String>("title")
+        let type = Expression<Int64>("type")
+        let trashed = Expression<Int64>("trashed")
+        
+        // Thing3 stores there dates as epoch time
+        let creationDate = Expression<Double>("creationDate")
+        
+        let query = tasks.select(title,creationDate).filter(type == TaskType.task.rawValue && trashed == 0).order(creationDate.asc)
+        
+        for task in run(query: query) {
+            let dateStr = formatDate(from: TimeInterval(task[creationDate]))
+            
+            print("\(dateStr!): \(task[title])")
+        }
+    }
+}
+
+// MARK: - This section is for export commands
+extension ThingsDB {
+    
+    // stdout is the things3 export --stdout option. This displays a table of
+    // text directly to the console.
+    func stdout(project: String) {
+        var gatheredTasks = getTasks(for: project)
         
         gatheredTasks.sort(by: {
             $0.startDate < $1.startDate
@@ -244,10 +252,12 @@ extension ThingsDB {
              Column(title: "Notes", value: $0.notes, width: 24, truncate: .tail),
              Column(title: "Start Date", value: $0.startDate),
              Column(title: "Due Date", value: $0.dueDate),
-             Column(title: "Completion Date", value: $0.stopDate)
-            ]
+             Column(title: "Completion Date", value: $0.stopDate)]
         }
         
         table.print(gatheredTasks, style: Style.fancy)
     }
+    
+    // TODO: - Export tasks to CSV formatted file
+
 }

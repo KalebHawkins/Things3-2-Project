@@ -23,36 +23,45 @@ struct Things3: ParsableCommand {
 struct List: ParsableCommand {
     
     static var configuration: CommandConfiguration = CommandConfiguration(
-        abstract: "List available areas, projects, or tasks"
+        abstract: "List available areas, projects, or tasks",
+        subcommands: [Projects.self, Areas.self, Tasks.self]
     )
     
-    @Flag(name: .shortAndLong, help: "List available areas (sorted alphabetically)") var areas: Bool = false
-    @Flag(name: .shortAndLong, help: "List available projects (sorted alphabetically)") var projects: Bool = false
-    @Flag(name: .shortAndLong, help: "List available tasks (sorted by creation date)") var tasks: Bool = false
-    
-    func validate() throws {
-        // Make sure that at least on flag is set.
-        guard areas || projects || tasks else {
-            throw ValidationError("See things3 list -h for usage.")
-        }
-        
-        // Make sure that no more then one flag is set at a time.
-        // NOTE: This may be change after some thought but for now I don't want that functionality.
-        guard !areas && !projects || !areas && !tasks || !projects && !tasks else {
-            throw ValidationError("You can only specify one option at a time.")
-        }
+    func run() throws {
+        print(List.helpMessage())
     }
+}
+
+// Lists projects using things3 list projects
+struct Projects: ParsableCommand {
+    static var configuration: CommandConfiguration = CommandConfiguration(
+        abstract: "List available projects"
+    )
     
     func run() throws {
-        if areas {
-            thingsDB.listAreas()
-        }
-        if projects {
-            thingsDB.listProjects()
-        }
-        if tasks {
-            thingsDB.listTasks()
-        }
+        thingsDB.listProjects()
+    }
+}
+
+// Lists areas using things3 list areas
+struct Areas: ParsableCommand {
+    static var configuration: CommandConfiguration = CommandConfiguration(
+        abstract: "List available areas"
+    )
+    
+    func run() throws {
+        thingsDB.listAreas()
+    }
+}
+
+// Lists tasks using things3 list tasks
+struct Tasks: ParsableCommand {
+    static var configuration: CommandConfiguration = CommandConfiguration(
+        abstract: "List available tasks"
+    )
+    
+    func run() throws {
+        thingsDB.listTasks()
     }
 }
 
@@ -63,10 +72,16 @@ struct Export: ParsableCommand {
     )
     
     @Argument(help: "Name of the project to export") var project: String
+    
+    @Flag(name: .shortAndLong, help: "Output the project in std output") var csv: Bool = false
     @Flag(name: .shortAndLong, help: "Output the project in std output") var stdout: Bool = false
     
     func validate() throws {
-        guard stdout else {
+        guard stdout && csv else {
+            throw ValidationError("See things3 export -h for usage.")
+        }
+        
+        guard csv else {
             throw ValidationError("See things3 export -h for usage.")
         }
     }
@@ -74,6 +89,9 @@ struct Export: ParsableCommand {
     func run() throws {
         if stdout {
             thingsDB.stdout(project: project)
+        }
+        if csv {
+            
         }
     }
     
