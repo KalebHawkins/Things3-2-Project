@@ -13,7 +13,7 @@ git clone https://github.com/KalebHawkins/Things3-2-Project.git
 cd Things-2-Project/
 
 swift build --configuraion release
-sudo cp .build/release/things3 /usr/share/bin
+sudo cp .build/release/things3 /usr/local/bin
 ```
 
 ## Usage
